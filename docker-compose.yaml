@@ -1,0 +1,66 @@
+---
+version: "3.7"
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:latest
+    container_name: mealie
+    hostname: mealie
+    ports:
+        - "10200:9000"
+    deploy:
+      resources:
+        limits:
+          memory: 1000M
+    depends_on:
+      - mealie_postgres
+    volumes:
+      - mealie-data:/app/data/
+    environment:
+    # Set Backend ENV Variables Here
+      - PUID=1000
+      - PGID=1000
+      - ALLOW_SIGNUP=$ALLOW_SIGNUP
+      - TZ=$TZ
+      - MAX_WORKERS=$MAX_WORKERS
+      - WEB_CONCURRENCY=$WEB_CONCURRENCY
+      - BASE_URL=$BASE_URL
+
+    # Database Settings
+      - DB_ENGINE=postgres
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - POSTGRES_SERVER=mealie_postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=mealie
+
+    # Email Settings
+      - SMTP_HOST=$SMTP_HOST
+      - SMTP_PORT=$SMTP_PORT
+      - SMTP_FROM_NAME=$SMTP_FROM_NAME
+      - SMTP_AUTH_STRATEGY=$SMTP_AUTH_STRATEGY
+      - SMTP_FROM_EMAIL=$SMTP_FROM_EMAIL
+      - SMTP_USER=$SMTP_USER
+      - SMTP_PASSWORD=$SMTP_PASSWORD
+    restart: always
+
+  mealie_postgres:
+    container_name: mealie_postgres
+    hostname: mealie_postgres
+    image: postgres:latest
+    restart: always
+    volumes:
+      - mealie-pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - POSTGRES_USER=$POSTGRES_USER
+
+networks:
+  mealie-network:
+    name: mealie-network
+    driver: bridge
+
+volumes:
+  mealie-data:
+    driver: local
+  mealie-pgdata:
+    driver: local
